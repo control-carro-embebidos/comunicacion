@@ -1,0 +1,13 @@
+              Tarea        	                                                            Dueño
+Modelo Capas UART		                                                        ->
+Modelo Capas Wi-fi		                                                        ->
+Configuración Topic Subcribe Publish	                                                ->
+Configuración Websocket		                                                        ->
+Código Comunicación Básica Carros (Wi-Fi)                                               ->  Carlos Rey
+Arreglar para que sea capaz de comunicar todos los tipos de datos (Wi-Fi)(Json)	        ->
+Código Comunicación Básica (UART)		                                        ->  Karen Leon
+Arreglar para que sea capaz de comunicar todos los tipos de datos (UART)(Json)          ->
+Pruebas de Rango		                                                        ->
+Codigo Comunicación Básica Computador                                                   ->
+Arreglar Comunicación Computador para todos los tipos de datos                          -> 
+Pruebas conexión con el Computador Central		                                ->
