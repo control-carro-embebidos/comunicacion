@@ -1,13 +1,13 @@
               Tarea        	                                                            Dueño
-Modelo Capas UART		                                                        ->
-Modelo Capas Wi-fi		                                                        ->
-Configuración Topic Subcribe Publish	                                                ->
-Configuración Websocket		                                                        ->
+Modelo Capas UART		                                                        -> Andres Cepeda 
+Modelo Capas Wi-fi		                                                        -> Nicolas Romero
+Configuración Topic Subcribe Publish	                                                -> Santiago Samuso 
+Configuración Websocket		                                                        -> Luis Camargo
 Código Comunicación Básica Carros (Wi-Fi)                                               ->  Carlos Rey
-Arreglar para que sea capaz de comunicar todos los tipos de datos (Wi-Fi)(Json)	        ->
+Arreglar para que sea capaz de comunicar todos los tipos de datos (Wi-Fi)(Json)	        -> Nicolas Romero / Andres Cepeda
 Código Comunicación Básica (UART)		                                        ->  Karen Leon
-Arreglar para que sea capaz de comunicar todos los tipos de datos (UART)(Json)          ->
-Pruebas de Rango		                                                        ->
-Codigo Comunicación Básica Computador                                                   ->
-Arreglar Comunicación Computador para todos los tipos de datos                          -> 
-Pruebas conexión con el Computador Central		                                ->
+Arreglar para que sea capaz de comunicar todos los tipos de datos (UART)(Json)          -> Karen Leon
+Pruebas de Rango		                                                        -> Sebastian Caliman
+Codigo Comunicación Básica Computador                                                   -> Carlos Rey
+Arreglar Comunicación Computador para todos los tipos de datos                          -> Alex Moreno 
+Pruebas conexión con el Computador Central		                                -> Sebastian Caliman
