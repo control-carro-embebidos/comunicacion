@@ -1,166 +1,138 @@
+#*central*
 import network
 import socket
 import json
 import time
 import select
 
-# ——————————————————————————————————————————————————————————
-# 1) Iniciar Access Point
-# ——————————————————————————————————————————————————————————
-def start_access_point(ssid: str, password: str):
-    """
-    Activa el Pico W en modo Access Point con SSID/PASSWORD.
-    Devuelve (ap_obj, ip), donde ap_obj es el objeto WLAN y ip es la IP asignada.
-    """
-    ap = network.WLAN(network.AP_IF)
-    ap.active(True)
-    ap.config(essid=ssid, password=password)
+SSID = "CentralAP"
+PASSWORD = "12345678"
 
-    # Esperar hasta que el AP quede activo
-    while not ap.active():
-        time.sleep(0.2)
+# Configurar Access Point
+ap = network.WLAN(network.AP_IF)
+ap.active(True)
+ap.config(essid=SSID, password=PASSWORD)
 
-    ip, subnet, gateway, dns = ap.ifconfig()
-    print("✅ AP activo:")
-    print(f"    • SSID   : {ssid}")
-    print(f"    • IP     : {ip}")
-    print(f"    • Subnet : {subnet}")
-    print(f"    • Gateway: {gateway}")
-    print(f"    • DNS    : {dns}")
-    return ap, ip
+json_data = {
+    "mensaje": "Hola desde la central (mensaje de prueba)",
+    "ip_destino": "192.168.4.60",
+      "Carro_1":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":0}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":90, "angulo2_grados":0}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":90}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":-90}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":90}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":-90}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":-90, "angulo2_grados":0}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":0, "angulo2_grados":0}
+            }
+        },
+    "timestamp": time.time(),
+    "status": "ok"
+}
 
-# ——————————————————————————————————————————————————————————
-# 2) Configurar socket UDP
-# ——————————————————————————————————————————————————————————
-def setup_udp_socket(bind_ip: str, bind_port: int):
-    """
-    Crea un socket UDP no bloqueante en (bind_ip, bind_port).
-    Devuelve el socket listo para usar.
-    """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((bind_ip, bind_port))
-    s.setblocking(False)
-    print(f"✅ Socket UDP enlazado en {bind_ip}:{bind_port}")
-    return s
+while not ap.active():
+    time.sleep(1)
 
-# ——————————————————————————————————————————————————————————
-# 3) Chequear y reactivar el Access Point si se cae
-# ——————————————————————————————————————————————————————————
-def check_wifi(ap):
-    """
-    Si el Access Point (ap) no está activo, lo reactiva.
-    """
+print("✅ AP activo:", ap.ifconfig())  # IP: 192.168.4.1
+
+HOST = ap.ifconfig()[0]
+PORT = 1234
+
+# Crear socket UDP no bloqueante
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind((HOST, PORT))
+s.setblocking(False)  # No bloqueante
+
+print(f"📡 Servidor UDP escuchando en {HOST}:{PORT}")
+
+# ------------------------- FUNCIONES -------------------------
+
+def check_wifi():
     if not ap.active():
         print("❌ AP WiFi caído, reactivando...")
         ap.active(True)
 
-# ——————————————————————————————————————————————————————————
-# 4) Leer datos entrantes y responder
-# ——————————————————————————————————————————————————————————
-def handle_incoming(sock):
+def recibir_mensaje():
     """
-    Revisa si hay datos entrantes en sock (UDP no bloqueante).
-    Si llegan, los lee, parsea JSON, imprime en consola y responde con
-    {"status":"ok","received":<json>}. Retorna True si leyó algo, o False si no había nada.
+    Revisa si hay mensajes entrantes y devuelve la IP y el mensaje si hay.
     """
-    rlist, _, _ = select.select([sock], [], [], 0)
-    if not rlist:
-        return False  # No llegaron datos
-    try:
-        data, addr = sock.recvfrom(1024)
-        if not data:
-            return False
-        mensaje = data.decode()
-        print(f"📥 Recibido de {addr}: {mensaje}")
-
+    rlist, _, _ = select.select([s], [], [], 1)
+    if rlist:
         try:
-            json_data = json.loads(mensaje)
-            print("    ✅ JSON parseado:", json_data)
-        except ValueError as e:
-            print("    ❌ Error al parsear JSON:", e)
-            json_data = {"error": "JSON inválido"}
+            data, addr = s.recvfrom(1024)
+            if data:
+                message = data.decode()
+                print(f"📥 Recibido de {addr}: {message}")
+                try:
+                    json_data = json.loads(message)
+                    print("✅ JSON recibido:", json_data)
+                except Exception as e:
+                    print("❌ Error al parsear JSON:", e)
+                    json_data = {"error": "JSON inválido"}
 
-        # Responder al cliente
-        respuesta = {"status": "ok", "received": json_data}
-        sock.sendto(json.dumps(respuesta).encode(), addr)
-        print(f"    📤 Respuesta enviada a {addr}: {respuesta}")
-        return True
-    except Exception as e:
-        print("    🚫 Error en handle_incoming:", e)
-        return False
+                return addr[0], addr[1], json_data  # IP, puerto, datos
+        except Exception as e:
+            print("🚫 Error recibiendo datos UDP:", e)
+    return None, None, None
 
-# ——————————————————————————————————————————————————————————
-# 5) Enviar mensaje personalizado a cualquier IP/puerto
-# ——————————————————————————————————————————————————————————
-def send_custom_message(sock, dest_ip: str, dest_port: int, payload: dict):
+def enviar_json_a_dispositivo(ip_destino, puerto_destino, json_data):
     """
-    Envía payload (un dict) en JSON vía UDP a (dest_ip, dest_port).
+    Envía un JSON de prueba a un dispositivo conectado con IP y puerto conocidos.
     """
+
+
     try:
-        msg_bytes = json.dumps(payload).encode()
-        sock.sendto(msg_bytes, (dest_ip, dest_port))
-        print(f"📤 Mensaje personalizado enviado a ({dest_ip}, {dest_port}): {payload}")
+        mensaje = json.dumps(json_data)
+        s.sendto(mensaje.encode(), (ip_destino, puerto_destino))
+        print(f"📤 JSON enviado a {ip_destino}:{puerto_destino}")
     except Exception as e:
-        print(f"❌ Error enviando mensaje personalizado: {e}")
+        print("❌ Error al enviar JSON:", e)
 
-# ——————————————————————————————————————————————————————————
-# 6) Función principal
-# ——————————————————————————————————————————————————————————
-def main():
-    SSID = "CentralAP"
-    PASSWORD = "12345678"
-    UDP_PORT = 1234
+# ------------------------- LOOP PRINCIPAL -------------------------
 
-    # 6.1) Arrancar Access Point
-    ap, bind_ip = start_access_point(SSID, PASSWORD)
+last_wifi_check = 0
+wifi_check_interval = 10  # segundos
 
-    # 6.2) Crear socket UDP
-    udp_sock = setup_udp_socket(bind_ip, UDP_PORT)
+# Dirección IP y puerto del cliente (ajusta esto)
+ip_cliente_objetivo = "192.168.4.2"
+puerto_cliente_objetivo = 5678
 
-    last_wifi_check = time.time()
-    wifi_check_interval = 10       # Chequear AP cada 10 s
-    last_temp_sent = 0
-    send_temp_interval = 15        # Enviar temp cada 15 s
+while True:
+    # Detectar si llegó un mensaje entrante
+    
+    ip_remitente, puerto_remitente, datos = recibir_mensaje()
+    # Enviar mensaje de prueba al cliente conocido
+    enviar_json_a_dispositivo("192.168.4.17", 5525, json_data)
+    enviar_json_a_dispositivo("192.168.4.123", 5555, json_data)
+    # Chequeo periódico del AP
+    now = time.time()
+    if now - last_wifi_check > wifi_check_interval:
+        check_wifi()
+        last_wifi_check = now
 
-    print("📡 Servidor UDP en bucle principal. Ctrl+C para detener.")
-    try:
-        while True:
-            # 6.3) Leer datos entrantes (handle_incoming)
-            handle_incoming(udp_sock)
-
-            # 6.4) Enviar temperatura cada cierto intervalo
-            now = time.time()
-            if now - last_temp_sent > send_temp_interval:
-                carro_ip = "192.168.4.17"
-                carro_port = 1234
-                mensaje_salida = {
-                    "comando": "actualizar_temp",
-                    "temp": 26.9
-                }
-                send_custom_message(udp_sock, carro_ip, carro_port, mensaje_salida)
-                last_temp_sent = now
-
-            # 6.5) Chequear estado del AP periódicamente
-            if now - last_wifi_check > wifi_check_interval:
-                check_wifi(ap)
-                last_wifi_check = now
-
-            # Evitar bucle apretado
-            time.sleep(0.1)
-
-    except KeyboardInterrupt:
-        print("\n🛑 Bucle detenido por teclado.")
-    finally:
-        udp_sock.close()
-        print("🔌 Socket UDP cerrado.")
-        if ap.active():
-            ap.active(False)
-            print("🔌 Access Point desactivado.")
-
-# ——————————————————————————————————————————————————————————
-# 7) Punto de entrada
-# ——————————————————————————————————————————————————————————
-if __name__ == "__main__":
-    main()
-
+    time.sleep(2)  # Evitar enviar mensajes en bucle rápidoa
