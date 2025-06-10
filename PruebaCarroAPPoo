@@ -1,0 +1,6 @@
+# archivo: programa_carro_ap.py
+
+from clase_carro_ap import CarroAP
+
+carro = CarroAP()
+carro.ciclo_principal()
