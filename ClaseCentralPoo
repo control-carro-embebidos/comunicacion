@@ -1,0 +1,83 @@
+import network
+import socket
+import json
+import time
+import select
+
+class CentralWiFi:
+    def __init__(self, ssid, password, port=1234):
+        self.ssid = ssid
+        self.password = password
+        self.port = port
+        self.ap = network.WLAN(network.AP_IF)
+        self.socket = None
+        self._iniciar_ap()
+        self._iniciar_socket()
+
+    def _iniciar_ap(self):
+        self.ap.active(True)
+        self.ap.config(essid=self.ssid, password=self.password)
+        while not self.ap.active():
+            time.sleep(1)
+        print("✅ AP activo:", self.ap.ifconfig())
+
+    def _iniciar_socket(self):
+        host = self.ap.ifconfig()[0]
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind((host, self.port))
+        self.socket.setblocking(False)
+        print(f"📡 Servidor UDP escuchando en {host}:{self.port}")
+
+    def check_wifi(self):
+        if not self.ap.active():
+            print("❌ AP WiFi caído, reactivando...")
+            self.ap.active(True)
+
+    def recibir_mensaje(self):
+        rlist, _, _ = select.select([self.socket], [], [], 1)
+        if rlist:
+            try:
+                data, addr = self.socket.recvfrom(4096)
+                if data:
+                    message = data.decode()
+                    print(f"📥 Recibido de {addr}: {message}")
+                    try:
+                        json_data = json.loads(message)
+                        print("✅ JSON recibido:", json_data)
+                    except Exception as e:
+                        print("❌ Error al parsear JSON:", e)
+                        json_data = {"error": "JSON inválido"}
+                    return addr[0], addr[1], json_data
+            except Exception as e:
+                print("🚫 Error recibiendo datos UDP:", e)
+        return None, None, None
+
+    def enviar_json_a_dispositivo(self, ip_destino, puerto_destino, json_data):
+        try:
+            mensaje = json.dumps(json_data)
+            self.socket.sendto(mensaje.encode(), (ip_destino, puerto_destino))
+            print(f"📤 JSON enviado a {ip_destino}:{puerto_destino}")
+        except Exception as e:
+            print("❌ Error al enviar JSON:", e)
+
+    def get_json_prueba(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.4.60",
+            "ip_destino": "192.168.4.601",
+            "identifacor" : "0000000"
+            "Carro_1": {
+                "Paso_1": {"Movimiento": {"distancia_mm": 100, "velocidad_mm_s": 50, "radio_mm": "inf"}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 0}},
+                "Paso_2": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 90, "angulo2_grados": 0}},
+                "Paso_3": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 90}},
+                "Paso_4": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": -90}},
+                "Paso_5": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 90}},
+                "Paso_6": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": -90}},
+                "Paso_7": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": -90, "angulo2_grados": 0}},
+                "Paso_8": {"Movimiento": {"distancia_mm": 100, "velocidad_mm_s": 50, "radio_mm": 50}, "Brazo": {"angulo0_grados": -90, "angulo1_grados": 0, "angulo2_grados": 0}}
+            },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+
