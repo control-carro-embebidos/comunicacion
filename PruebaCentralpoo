@@ -1,0 +1,26 @@
+# archivo: programa_principal.py
+
+import time
+from ClaseCentral import CentralWiFi
+
+# Inicializar clase central con SSID y contraseña
+central = CentralWiFi(ssid="CentralAP", password="12345678")
+
+# Bucle principal
+while True:
+    # Recibir mensaje
+    ip_remitente, puerto_remitente, datos_recibidos = central.recibir_mensaje()
+    mensaje_respuesta = central.get_json_prueba()
+
+    central.enviar_json_a_dispositivo("192.168.4.17", 5525, mensaje_respuesta)
+    central.enviar_json_a_dispositivo("192.168.4.123", 5555, mensaje_respuesta)
+
+    # Si hay datos recibidos, hacer algo con ellos
+    if datos_recibidos:
+        print("📦 Datos recibidos correctamente:", datos_recibidos)
+
+        # Enviar respuesta o mensaje de prueba
+
+    # Chequear estado del AP periódicamente
+    central.check_wifi()
+    time.sleep(2)
