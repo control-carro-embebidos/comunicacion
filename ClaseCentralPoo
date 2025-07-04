@@ -1,38 +1,22 @@
-import network
 import socket
 import json
 import time
 import select
 
+
 class CentralWiFi:
-    def __init__(self, ssid, password, port=1234):
-        self.ssid = ssid
-        self.password = password
+    def __init__(self, host='192.168.0.100', port=1234):
+        self.host = host
         self.port = port
-        self.ap = network.WLAN(network.AP_IF)
         self.socket = None
-        self._iniciar_ap()
         self._iniciar_socket()
 
-    def _iniciar_ap(self):
-        self.ap.active(True)
-        self.ap.config(essid=self.ssid, password=self.password)
-        while not self.ap.active():
-            time.sleep(1)
-        print("✅ AP activo:", self.ap.ifconfig())
-
     def _iniciar_socket(self):
-        host = self.ap.ifconfig()[0]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((host, self.port))
+        self.socket.bind((self.host, self.port))
         self.socket.setblocking(False)
-        print(f"📡 Servidor UDP escuchando en {host}:{self.port}")
-
-    def check_wifi(self):
-        if not self.ap.active():
-            print("❌ AP WiFi caído, reactivando...")
-            self.ap.active(True)
+        print(f"📡 Servidor UDP escuchando en {self.host}:{self.port}")
 
     def recibir_mensaje(self):
         rlist, _, _ = select.select([self.socket], [], [], 1)
@@ -64,20 +48,798 @@ class CentralWiFi:
     def get_json_prueba(self):
         return {
             "mensaje": "Hola desde la central (mensaje de prueba)",
-            "ip_destino": "192.168.4.60",
-            "ip_destino": "192.168.4.601",
-            "identifacor" : "0000000"
-            "Carro_1": {
-                "Paso_1": {"Movimiento": {"distancia_mm": 100, "velocidad_mm_s": 50, "radio_mm": "inf"}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 0}},
-                "Paso_2": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 90, "angulo2_grados": 0}},
-                "Paso_3": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 90}},
-                "Paso_4": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": -90}},
-                "Paso_5": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": 90}},
-                "Paso_6": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": 0, "angulo2_grados": -90}},
-                "Paso_7": {"Movimiento": {"distancia_mm": 0, "velocidad_mm_s": 0, "radio_mm": 0}, "Brazo": {"angulo0_grados": 0, "angulo1_grados": -90, "angulo2_grados": 0}},
-                "Paso_8": {"Movimiento": {"distancia_mm": 100, "velocidad_mm_s": 50, "radio_mm": 50}, "Brazo": {"angulo0_grados": -90, "angulo1_grados": 0, "angulo2_grados": 0}}
+            "ip_destino": "192.168.0.123",
+            "Carro_1":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":0, "t_ser":0}
             },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":90, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":90, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":-90, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":90, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":0, "angulo2_grados":-90, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":-90, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":0, "angulo2_grados":0, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+        
+    def get_json_prueba1(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.111",
+            "Carro_1":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+        
+    def get_json_prueba2(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.112",
+            "Carro_2":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
             "timestamp": time.time(),
             "status": "ok"
         }
 
+    def get_json_prueba3(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.113",
+            "Carro_3":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+        
+    def get_json_prueba4(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.114",
+            "Carro_4":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+        
+    def get_json_prueba5(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.121",
+            "Carro_5":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    
+    def get_json_prueba6(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.122",
+            "Carro_6":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    def get_json_prueba7(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.123",
+            "Carro_7":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    def get_json_prueba8(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.122",
+            "Carro_8":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    def get_json_prueba9(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.150",
+            "Carro_9":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    def get_json_prueba10(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.165",
+            "Carro_9":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":45, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+
+    def get_json_prueba11(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.115",
+            "Carro_9":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+        
+    def get_json_prueba12(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.185",
+            "Carro_9":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+    def get_json_prueba13(self):
+        return {
+            "mensaje": "Hola desde la central (mensaje de prueba)",
+            "ip_destino": "192.168.0.195",
+            "Carro_9":{
+        "Paso_1":{
+            "Movimiento":{"distancia_mm":100, "velocidad_mm_s":50, "radio_mm":"inf"},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_2":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_3":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_4":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_5":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":45, "t_ser":2}
+            },
+        "Paso_6":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":40, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_7":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":3}
+            },
+        "Paso_8":{
+            "Movimiento":{"distancia_mm":50, "velocidad_mm_s":50, "radio_mm":50},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_9":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_10":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_11":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":-90, "angulo1_grados":80, "angulo2_grados":0, "t_ser":2}
+            },
+        "Paso_12":{
+            "Movimiento":{"distancia_mm":0, "velocidad_mm_s":0, "radio_mm":0},
+            "Brazo":{"angulo0_grados":0, "angulo1_grados":80, "angulo2_grados":45, "t_ser":3}
+            }
+        },
+            "timestamp": time.time(),
+            "status": "ok"
+        }
+
+if __name__ == "__main__":
+    servidor = CentralWiFi()
+    while True:
+        ip, port, datos = servidor.recibir_mensaje()
+        if datos:
+            respuesta = servidor.get_json_prueba()
+            servidor.enviar_json_a_dispositivo(ip, port, respuesta)
